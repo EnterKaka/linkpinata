@@ -33,6 +33,24 @@
   color: #61dafb;
 }
 
+.monkey_img {
+  margin: 2px;
+  position: relative;
+}
+
+.monkey_img.active {
+  outline: 2px solid blue;
+}
+
+.img_name {
+  position: absolute;
+  top: 15px;
+  left: 20px;
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);

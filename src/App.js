@@ -1,4 +1,3 @@
-import logo from './logo.svg';
 import './App.css';
 import {useState, useEffect} from 'react';
 import Monkey from './component/Monkey'
@@ -6,12 +5,13 @@ import axios from 'axios';
 import html2canvas from 'html2canvas';
 import FormData from 'form-data';
 
-
 function App() {
   const [test, setTest] = useState(0);
-	let imgurl = '';
+  const [imgName, setImgName] = useState('');
+  const [imgurl, setImgurl] = useState('');
+
 	const propfunc = (temp) => {
-		imgurl = temp;
+		setImgurl(temp);
 	}
   let pinataApiKey = 'f3c288ecf96997ffc469';
   let pinataSecretApiKey = '3f9c08c4a1a0da4193c81a04a255b05e00561262d89f003f58e6e2b2e01787df';
@@ -26,19 +26,17 @@ function App() {
 		const element = await document.getElementById(imgurl);
 		const canvas = await html2canvas(element);
 		let data = canvas.toDataURL('image/jpg');
-		console.log(data);
 
     srcToFile(
         data,
-        'new.png',
+        imgName + '.png',
         'iamge/png'
     )
     .then(function(file){
-        console.log(file);
         var fd = new FormData();
         fd.append("file", file);
         const metadata = JSON.stringify({
-          name: 'new_image',
+          name: file.name,
           keyvalues: {
             exampleKey: 'exampleValue'
           }
@@ -46,7 +44,7 @@ function App() {
         fd.append('pinataMetadata', metadata);
       
         const pinataOptions = JSON.stringify({
-          cidVersion: 0,
+          cidVersion: 0
         });
         fd.append('pinataOptions', pinataOptions);
 
@@ -67,13 +65,20 @@ function App() {
             console.log("error", error);
         });
     })
-    .catch(console.error);
+    .catch(function (err){
+      console.log(err);
+    });
 	}
+
+  const changeImageName = (str)=>{
+    setImgName(str);
+  }
   return (
 	<div>
 		<button>mint</button>
 		<div className="App">
-			<Monkey test={test} propfunc={propfunc}/>
+			<Monkey name={imgName} propfunc={propfunc}/>
+      <input type='text' name="ImageName" value={imgName} onChange={e => changeImageName(e.target.value)} />
 			<button onClick={() => upload()}>Upload</button>
 		</div>
 		<div className='print'></div>
