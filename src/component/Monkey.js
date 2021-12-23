@@ -2,7 +2,6 @@ import {useState, useEffect} from "react";
 const Monkey = (props)=>{
     const {test, propfunc} = props;
     // const [temp, setTemp] = useState(0);
-
     useEffect(() => {
     })
 
