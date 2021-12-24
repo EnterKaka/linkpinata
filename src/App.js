@@ -1,13 +1,15 @@
 import './App.css';
 import {useState, useEffect} from 'react';
-import Monkey from './component/Monkey'
+import Monkey from './component/Monkey';
+import Loading from './component/Loading';
 import axios from 'axios';
 import html2canvas from 'html2canvas';
 import FormData from 'form-data';
 
 function App() {
-  const [test, setTest] = useState(0);
+  // const [test, setTest] = useState(0);
   const [imgName, setImgName] = useState('');
+  const [loading, setLoading] = useState(false);
   const [imgurl, setImgurl] = useState('');
 
 	const propfunc = (temp) => {
@@ -23,6 +25,7 @@ function App() {
   }
 	const upload = async ()=>{
 		if(imgurl == '') return;
+    setLoading(true);
 		const element = await document.getElementById(imgurl);
 		const canvas = await html2canvas(element);
 		let data = canvas.toDataURL('image/jpg');
@@ -59,8 +62,11 @@ function App() {
         .then(function (response) {
             //handle response here
             console.log("success", response);
+            setLoading(false);
         })
         .catch(function (error) {
+            setLoading(false);
+
             //handle error here
             console.log("error", error);
         });
@@ -74,7 +80,8 @@ function App() {
     setImgName(str);
   }
   return (
-	<div>
+    <div>
+    <Loading className={loading ? '' : 'loading_disable'}/>
 		<button>mint</button>
 		<div className="App">
 			<Monkey name={imgName} propfunc={propfunc}/>

@@ -50,7 +50,24 @@
   font-weight: 500;
   margin: 0;
 }
-
+.loading{
+  margin: auto;
+}
+#load_div {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  z-index: 10;
+  width: 100vw;
+  height: 100vh;
+  text-align: center;
+  background: grey;
+  opacity: 0.5;
+}
+.loading_disable{
+  display: none !important;
+}
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
