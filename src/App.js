@@ -62,11 +62,6 @@ function App() {
         .then(function (response) {
             //handle response here
             let IpfsHash = response.data.IpfsHash;
-            let buffer_json = {
-              "name": file.name,
-              "description":"**WARNING**: Always check the Nametag you are about to purchase has the correct name by entering the token ID 1 into the **getTokenName** function [Etherscan](https://etherscan.io/address/0x686c626E48bfC5DC98a30a9992897766fed4Abd3) found here.",
-              "image":"https://gateway.pinata.cloud/ipfs/" + IpfsHash
-            };
             let jsonBody = {
               pinataMetadata: {
                   name: file.name + '.json'
