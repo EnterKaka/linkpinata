@@ -7,14 +7,18 @@ import html2canvas from 'html2canvas';
 import FormData from 'form-data';
 
 import Onboard from "bnc-onboard";
-import Web3 from "web3";
-import { ethers } from 'ethers'
+// import Web3 from "web3";
+import { ethers } from 'ethers';
 import {chainId} from "./ChainInfo.js";
+import contractABI from "./contractabi.json";
+
 const wallets = [
   { walletName: "metamask", preferred: true }
 ];
 
 let walletProvider;
+
+const nametagNftAddress = "0x5fD04FaA7A1602764cb8eF9081BBe9B139C9dBaE";
 
 const onboard = Onboard({
 
@@ -26,7 +30,7 @@ const onboard = Onboard({
   subscriptions: {
       wallet: (wallet) => {
           walletProvider = wallet.provider;
-          console.log(`${wallet.name} is now connected`);
+           console.log(`${wallet.name} is now connected`);
       }
   }
 });
@@ -59,7 +63,7 @@ const connectWallet =  async () => {
 }
 
 const disConnectWallet = () => {
-  // onboard.walletReset()
+  onboard.walletReset()
   return {
       address: "",
       status: "😥 Connect your wallet account to the site.",
@@ -82,29 +86,109 @@ const getCurrentWalletConnected = async () => {
   }
 }
 
+const getContract = (contractAddress, abi) => {
+
+  let contract
+
+  try {
+        // const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const provider = new ethers.providers.Web3Provider(walletProvider);
+        const signer = provider.getSigner();
+        contract = new ethers.Contract(contractAddress, abi, signer)
+  } catch (error) {
+      contract = null
+  }
+  return contract
+}
+
 function App() {
   // const [test, setTest] = useState(0);
   const [imgName, setImgName] = useState('');
   const [loading, setLoading] = useState(false);
   const [imgurl, setImgurl] = useState('');
+  const [account, setAccount] = useState("");
+  const [connected, setConnected] = useState(false);
 
 	const propfunc = (temp) => {
 		setImgurl(temp);
 	}
-  let pinataApiKey = 'f3c288ecf96997ffc469';
-  let pinataSecretApiKey = '3f9c08c4a1a0da4193c81a04a255b05e00561262d89f003f58e6e2b2e01787df';
+  let pinataApiKey = '7c29e9aba6e0e32a199c';
+  let pinataSecretApiKey = 'a6dfb14dbba3bbd599bcf219da2da836396dd88cd3ac54c6b00c32f74f7abb4c';
   const srcToFile = (src, fileName, mimeType) => {
     return (fetch(src)
         .then(function(res){return res.arrayBuffer();})
         .then(function(buf){return new File([buf], fileName, {type:mimeType});})
     );
   }
+
+  useEffect(()=>{
+    // console.log(account)
+    // console.log(walletProvider)
+    if(walletProvider) {
+      setAccount(getCurrentWalletConnected().address);
+      setConnected(true);
+    } else {
+      setConnected(false);
+    }
+  }, [account])
+
+  const connetButtonClick = async () => {
+    setAccount(await connectWallet());
+  }
+
+  const disconnectButtonClick = () => {
+    setAccount("");
+    disConnectWallet();
+  }
+
+
+  const mint = async (name, cid) => {
+
+    if(!walletProvider) {
+      alert("Please connect metamask");
+      setLoading(false)
+    }
+
+    let namecontract = getContract(nametagNftAddress, contractABI);
+    // console.log("contract", namecontract);
+    if(!namecontract) {
+      console.log("contract error");
+      setLoading(false)
+    }
+
+    try {
+      const tx = await namecontract.Mint(name, cid, {value:ethers.utils.parseUnits("0.03", 18)});
+      console.log(tx);
+      let response = await tx.wait();
+      console.log(response);
+      setLoading(false)
+      // return {address, name, symbol, decimal, supply, balance, type, state};
+    } catch (error) {
+      console.log(error)
+      setLoading(false)
+      // return null;
+    }
+  }
+
+  const validate = () => {
+    if(!walletProvider) {
+      alert("Please connect metamask");
+      setLoading(false)
+      return false;
+    }
+    return true;
+  }
+
 	const upload = async ()=>{
 		if(imgurl === '') return;
     setLoading(true);
 		const element = await document.getElementById(imgurl);
 		const canvas = await html2canvas(element);
-		let data = canvas.toDataURL('image/jpg');
+		let data = canvas.toDataURL('image/jpg');   
+
+    // mint("test", "QmSDEJmURXijv8EEWQubRtwRm1kQh1XpB1wvD2DxRzvzWZ");
+    if(!validate())
+      return;
 
     srcToFile(
         data,
@@ -158,7 +242,8 @@ function App() {
             .then(function (response) {
                 IpfsHash = response.data.IpfsHash;
                 console.log("success", IpfsHash);
-                setLoading(false);
+                mint(imgName, IpfsHash)
+                // setLoading(false);
                 //handle response here
             })
             .catch(function (error) {
@@ -185,7 +270,8 @@ function App() {
   return (
     <div>
     <Loading className={loading ? '' : 'loading_disable'}/>
-		<button onClick={()=>connectWallet()}>mint</button>
+		{!connected && <button onClick={()=>connetButtonClick()}>Connect Metamask</button>}
+    {connected && <button onClick={()=>disconnectButtonClick()}>Disconnect</button>}
 		<div className="App">
 			<Monkey name={imgName} propfunc={propfunc}/>
       <input type='text' name="ImageName" value={imgName} onChange={e => changeImageName(e.target.value)} />
